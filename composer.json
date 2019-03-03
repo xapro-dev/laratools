@@ -3,6 +3,7 @@
     "description": "Laravel artisan commands",
     "keywords": ["laravel", "commands", "artisan"],
     "license": "MIT",
+    "version": "0.0.1",
     "authors": [
         {
             "name": "Xapro",
