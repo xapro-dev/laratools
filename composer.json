@@ -1,0 +1,27 @@
+{
+    "name": "xapro/laratools",
+    "description": "Laravel artisan commands",
+    "keywords": ["laravel", "commands", "artisan"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Xapro",
+            "email": "xapro.public@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "Xapro\\Laratools\\": "src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Xapro\\Laratools\\LaratoolsServiceProvider"
+            ]
+        }
+    }
+}
