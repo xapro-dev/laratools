@@ -6,7 +6,10 @@ namespace Xapro\Laratools\Console;
 
 use App\User;
 use Illuminate\Console\Command;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
+use Xapro\Laratools\LaratoolsServiceProvider;
 
 class AddUser extends Command
 {
@@ -39,9 +42,17 @@ class AddUser extends Command
         //get role
         $role = $this->ask('Set user\'s role (guest by default)') ?? 'guest';
 
+        // should we create role column?
+        $shouldCreateRoleCol = $this->confirm('Should we create role column?');
+        if ($shouldCreateRoleCol) {
+            $this->call('vendor:publish', ['--provider' => LaratoolsServiceProvider::class, '--tag' => 'migrations']);
+            $path = 'vendor/xapro/laratools/migrations/2019_03_04_00_create_role_column.php';
+            $this->call('migrate', ['--path' => $path]);
+        }
+
         $params = compact('name','email','password','role');
         
-        $user = User::make($params);
+        $user = User::make($params)->save();
 
         $this->table(array_keys($params), [$params]);
     }
