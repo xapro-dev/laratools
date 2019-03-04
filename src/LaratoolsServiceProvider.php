@@ -13,6 +13,11 @@ use Xapro\Laratools\Console\AddUser;
 
 class LaratoolsServiceProvider extends ServiceProvider
 {
+    public function boot()
+    {
+        $this->loadMigrationsFrom(__DIR__.'/../migrations');
+    }
+
     public function register()
     {
         $this->commands(
