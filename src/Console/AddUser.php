@@ -20,30 +20,29 @@ class AddUser extends Command
 
     public function handle()
     {
-        $this->name = $this->ask('Set user\'s name (empty by default).') ?? '';
-        
-        $this->email = $this->ask('Set user\'s email (empty by default).') 
-            ?? ($this->name 
-                ? $this->name . '@' . substr(config('app.url'), strpos(config('app.url'), '://') + 3) 
-                : null);
-        
-        if (!$this->email) return $this->error('lol?');
-        
-        $this->password = $this->ask('Set user\'s password (empty by default).') ?? '';
-        
-        $this->role = $this->ask('Set user\'s role (empty by default).') ?? '';
-        
-        
-        $user = User::make(
-            [
-                'name' => $this->name,
-                'email' => $this->email,
-                'password' => Hash::make($this->password)
-            ]
-        );
+        // get name
+        $name = $this->ask('Set user\'s name (empty by default)') ?? '';
 
-        $headers = ['name','email','password'];
+        // get email
+        $preparedEmail = $name
+            ? $name . '@' . substr(config('app.url'), strpos(config('app.url'), '://') + 3)
+            : null;
+        $email = $this->ask(sprintf('Set user\'s email (%s by default)', $preparedEmail ?? 'empty'))
+            ?? $preparedEmail;
 
-        $this->table($headers, [$user->only(['name','email','password'])]);
+        // abort if all empty
+        if (!$email) return $this->error('lol?');
+
+        //get password
+        $password = $this->ask('Set user\'s password (empty by default)') ?? '';
+
+        //get role
+        $role = $this->ask('Set user\'s role (guest by default)') ?? 'guest';
+
+        $params = compact('name','email','password','role');
+        
+        $user = User::make($params);
+
+        $this->table(array_keys($params), [$params]);
     }
 }
