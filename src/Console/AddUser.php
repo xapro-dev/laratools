@@ -30,7 +30,7 @@ class AddUser extends Command
 
         $password = $this->ask('Set user\'s password (empty by default)') ?? '';
 
-        if ($this->getOptions()['simple']) {
+        if (!$this->option('simple')) {
             $role = $this->ask('Set user\'s role (guest by default)') ?? 'guest';
 
             // should we create role column?
@@ -45,7 +45,9 @@ class AddUser extends Command
         $params = compact('name','email','password');
         if (isset($role)) $params['role'] = $role;
         
-        $user = User::make($params)->save();
+        $user = User::make($params);
+        $user->password = Hash::make($password);
+        $user->save();
 
         $this->table(array_keys($params), [$params]);
     }
