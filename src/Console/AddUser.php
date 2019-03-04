@@ -17,43 +17,50 @@ class AddUser extends Command
     protected $email;
     protected $password;
 
-    protected $signature = 'xapro:adduser {--A|admin}';
+    protected $signature = 'xapro:adduser {--S|simple}';
 
     protected $description = 'Add new user to users table';
 
     public function handle()
     {
-        // get name
-        $name = $this->ask('Set user\'s name (empty by default)') ?? '';
+        $name = $this->ask('Set user\'s name (empty by default)') ?? null;
 
-        // get email
-        $preparedEmail = $name
-            ? $name . '@' . substr(config('app.url'), strpos(config('app.url'), '://') + 3)
-            : null;
-        $email = $this->ask(sprintf('Set user\'s email (%s by default)', $preparedEmail ?? 'empty'))
-            ?? $preparedEmail;
+        $email = $this->getEmail($name);
+        if (!$email) return $this->error('Type name or email!');
 
-        // abort if all empty
-        if (!$email) return $this->error('lol?');
-
-        //get password
         $password = $this->ask('Set user\'s password (empty by default)') ?? '';
 
-        //get role
-        $role = $this->ask('Set user\'s role (guest by default)') ?? 'guest';
+        if ($this->getOptions()['simple']) {
+            $role = $this->ask('Set user\'s role (guest by default)') ?? 'guest';
 
-        // should we create role column?
-        $shouldCreateRoleCol = $this->confirm('Should we create role column?');
-        if ($shouldCreateRoleCol) {
-            $this->call('vendor:publish', ['--provider' => LaratoolsServiceProvider::class, '--tag' => 'migrations']);
-            $path = 'vendor/xapro/laratools/migrations/2019_03_04_00_create_role_column.php';
-            $this->call('migrate', ['--path' => $path]);
+            // should we create role column?
+            $shouldCreateRoleCol = $this->confirm('Should we create role column?');
+            if ($shouldCreateRoleCol) {
+                $this->call('vendor:publish', ['--provider' => LaratoolsServiceProvider::class, '--tag' => 'migrations']);
+                $path = 'vendor/xapro/laratools/migrations/2019_03_04_00_create_role_column.php';
+                $this->call('migrate', ['--path' => $path]);
+            }
         }
 
-        $params = compact('name','email','password','role');
+        $params = compact('name','email','password');
+        if (isset($role)) $params['role'] = $role;
         
         $user = User::make($params)->save();
 
         $this->table(array_keys($params), [$params]);
+    }
+
+    private function getEmail($name)
+    {
+        // if we have a name create email based on it. Null otherwise
+        $preparedEmail = $name
+            ? $name . '@' . substr(config('app.url'), strpos(config('app.url'), '://') + 3)
+            : null;
+
+        // return null if no email and no name
+        $email = $this->ask(sprintf('Set user\'s email (%s by default)', $preparedEmail ?? 'empty'))
+            ?? $preparedEmail;
+
+        return $email;
     }
 }
